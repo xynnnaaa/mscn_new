@@ -13,7 +13,7 @@ def load_data(file_name, num_materialized_samples):
     label = []
 
     # Load queries
-    with open(file_name + ".csv", 'rU') as f:
+    with open(file_name + ".csv", 'r') as f:
         data_raw = list(list(rec) for rec in csv.reader(f, delimiter='#'))
         for row in data_raw:
             tables.append(row[0].split(','))
@@ -51,8 +51,10 @@ def load_data(file_name, num_materialized_samples):
     return joins, predicates, tables, samples, label
 
 
-def load_and_encode_train_data(num_queries, num_materialized_samples):
-    file_name_queries = "data/train"
+def load_and_encode_train_data(train_set, num_queries, num_materialized_samples):
+    # file_name_queries = "data/train_0330/train_0330"
+    file_name_queries = "data/" + train_set
+    print(file_name_queries)
     file_name_column_min_max_vals = "data/column_min_max_vals.csv"
 
     joins, predicates, tables, samples, label = load_data(file_name_queries, num_materialized_samples)
@@ -74,7 +76,7 @@ def load_and_encode_train_data(num_queries, num_materialized_samples):
     join2vec, idx2join = get_set_encoding(join_set)
 
     # Get min and max values for each column
-    with open(file_name_column_min_max_vals, 'rU') as f:
+    with open(file_name_column_min_max_vals, 'r') as f:
         data_raw = list(list(rec) for rec in csv.reader(f, delimiter=','))
         column_min_max_vals = {}
         for i, row in enumerate(data_raw):
@@ -90,6 +92,8 @@ def load_and_encode_train_data(num_queries, num_materialized_samples):
     # Split in training and validation samples
     num_train = int(num_queries * 0.9)
     num_test = num_queries - num_train
+
+    print(num_queries, num_train, num_test)
 
     samples_train = samples_enc[:num_train]
     predicates_train = predicates_enc[:num_train]
@@ -167,9 +171,9 @@ def make_dataset(samples, predicates, joins, labels, max_num_joins, max_num_pred
                                  predicate_masks, join_masks)
 
 
-def get_train_datasets(num_queries, num_materialized_samples):
+def get_train_datasets(train_set, num_queries, num_materialized_samples):
     dicts, column_min_max_vals, min_val, max_val, labels_train, labels_test, max_num_joins, max_num_predicates, train_data, test_data = load_and_encode_train_data(
-        num_queries, num_materialized_samples)
+        train_set, num_queries, num_materialized_samples)
     train_dataset = make_dataset(*train_data, labels=labels_train, max_num_joins=max_num_joins,
                                  max_num_predicates=max_num_predicates)
     print("Created TensorDataset for training data")
